@@ -3,7 +3,6 @@ const bodyParser = require('body-parser');
 const XLSX = require('xlsx');
 const cors = require('cors');
 const app = express();
-const path = require('path');
 
 console.log('Starting server initialization...');
 
@@ -11,11 +10,12 @@ console.log('Starting server initialization...');
 app.use(cors());
 app.use(bodyParser.json());
 
-// Serve static files from public directory
-app.use(express.static('public'));
-
 // Store attendance data in memory
 let attendanceData = [];
+
+// Store recent scans to prevent duplicates
+const recentScans = new Map(); // Map to store recent scans
+const SCAN_COOLDOWN = 5000; // 5 seconds cooldown between scans
 
 // Log middleware
 app.use((req, res, next) => {
@@ -25,6 +25,29 @@ app.use((req, res, next) => {
 
 app.post('/register-attendance', (req, res) => {
     try {
+        const { id, name } = req.body;
+        const now = Date.now();
+        const scanKey = `${id}-${name}`;
+        
+        // Check if this code was recently scanned
+        const lastScanTime = recentScans.get(scanKey);
+        if (lastScanTime && (now - lastScanTime) < SCAN_COOLDOWN) {
+            console.log('Duplicate scan prevented for:', scanKey);
+            return res.status(429).json({
+                error: 'Por favor espere unos segundos antes de escanear nuevamente'
+            });
+        }
+
+        // Update last scan time
+        recentScans.set(scanKey, now);
+
+        // Clean up old entries from recentScans
+        for (const [key, time] of recentScans.entries()) {
+            if (now - time > SCAN_COOLDOWN) {
+                recentScans.delete(key);
+            }
+        }
+
         console.log('Registering attendance:', req.body);
         attendanceData.push(req.body);
         res.sendStatus(200);
@@ -177,6 +200,8 @@ app.get('/', (req, res) => {
             <a href="/download-excel" class="download-button">Descargar Registro de Asistencia</a>
             
             <script>
+                let isProcessing = false;
+
                 function showSuccessModal() {
                     const modal = document.getElementById('successModal');
                     modal.style.display = 'block';
@@ -185,8 +210,9 @@ app.get('/', (req, res) => {
                     }, 2000);
                 }
 
-                function showError() {
+                function showError(message) {
                     const errorMsg = document.getElementById('errorMessage');
+                    errorMsg.textContent = message || 'Error al registrar la asistencia';
                     errorMsg.style.display = 'block';
                     setTimeout(() => {
                         errorMsg.style.display = 'none';
@@ -203,6 +229,12 @@ app.get('/', (req, res) => {
                 }
 
                 function onScanSuccess(decodedText) {
+                    if (isProcessing) {
+                        console.log('Procesando escaneo anterior...');
+                        return;
+                    }
+
+                    isProcessing = true;
                     try {
                         const [id, name] = decodedText.split('|');
                         const now = new Date();
@@ -225,16 +257,24 @@ app.get('/', (req, res) => {
                                 updateLastScanned(name);
                                 showSuccessModal();
                             } else {
-                                showError();
+                                return response.json().then(data => {
+                                    showError(data.error || 'Error al registrar la asistencia');
+                                });
                             }
                         })
                         .catch(error => {
                             console.error('Error:', error);
                             showError();
+                        })
+                        .finally(() => {
+                            setTimeout(() => {
+                                isProcessing = false;
+                            }, 5000); // Cooldown de 5 segundos
                         });
                     } catch (error) {
                         console.error('Error al procesar el código QR:', error);
                         showError();
+                        isProcessing = false;
                     }
                 }
 
