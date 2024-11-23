@@ -10,14 +10,12 @@ console.log('Starting server initialization...');
 app.use(cors());
 app.use(bodyParser.json());
 
-// Store attendance data in memory with a limit
-const MAX_RECORDS = 1000;
-let attendanceData = [];
+// Store attendance data by establishment
+const attendanceByEstablishment = new Map();
 
-// Store recent scans to prevent duplicates (with automatic cleanup)
+// Store recent scans to prevent duplicates
 const recentScans = new Map();
 const SCAN_COOLDOWN = 5000; // 5 seconds cooldown
-const CLEANUP_INTERVAL = 60000; // Clean up every minute
 
 // Cleanup old scan records periodically
 setInterval(() => {
@@ -27,13 +25,19 @@ setInterval(() => {
             recentScans.delete(key);
         }
     }
-}, CLEANUP_INTERVAL);
+}, 60000);
 
 app.post('/register-attendance', (req, res) => {
     try {
-        const { id, name } = req.body;
+        const { id, name, establishment } = req.body;
+        if (!establishment) {
+            return res.status(400).json({
+                error: 'Establecimiento no especificado'
+            });
+        }
+
         const now = Date.now();
-        const scanKey = `${id}-${name}`;
+        const scanKey = `${id}-${name}-${establishment}`;
         
         // Check for recent scan
         const lastScanTime = recentScans.get(scanKey);
@@ -46,17 +50,19 @@ app.post('/register-attendance', (req, res) => {
         // Update scan time
         recentScans.set(scanKey, now);
 
+        // Initialize establishment array if not exists
+        if (!attendanceByEstablishment.has(establishment)) {
+            attendanceByEstablishment.set(establishment, []);
+        }
+
         // Add attendance record
         const record = {
             ...req.body,
             timestamp: now
         };
 
-        // Maintain max records limit
-        if (attendanceData.length >= MAX_RECORDS) {
-            attendanceData.shift(); // Remove oldest record
-        }
-        attendanceData.push(record);
+        const establishmentRecords = attendanceByEstablishment.get(establishment);
+        establishmentRecords.push(record);
 
         res.sendStatus(200);
     } catch (error) {
@@ -65,15 +71,18 @@ app.post('/register-attendance', (req, res) => {
     }
 });
 
-app.get('/download-excel', (req, res) => {
+app.get('/download-excel/:establishment', (req, res) => {
     try {
-        const ws = XLSX.utils.json_to_sheet(attendanceData);
+        const { establishment } = req.params;
+        const records = attendanceByEstablishment.get(establishment) || [];
+        
+        const ws = XLSX.utils.json_to_sheet(records);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Asistencia');
         const excelBuffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
         
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.setHeader('Content-Disposition', 'attachment; filename=Asistencia.xlsx');
+        res.setHeader('Content-Disposition', `attachment; filename=Asistencia_${establishment}.xlsx`);
         res.send(excelBuffer);
     } catch (error) {
         console.error('Error generating Excel:', error);
@@ -81,7 +90,7 @@ app.get('/download-excel', (req, res) => {
     }
 });
 
-// Página principal - solo escáner
+// Página principal - con selección de establecimiento
 app.get('/', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -103,6 +112,16 @@ app.get('/', (req, res) => {
                     color: #333;
                     text-align: center;
                     margin-bottom: 30px;
+                }
+                #establishmentSelect {
+                    display: block;
+                    width: 100%;
+                    max-width: 400px;
+                    margin: 20px auto;
+                    padding: 10px;
+                    font-size: 16px;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
                 }
                 #reader {
                     margin: 0 auto;
@@ -182,28 +201,60 @@ app.get('/', (req, res) => {
                     text-align: center;
                     display: none;
                 }
+                #scannerContainer {
+                    display: none;
+                }
             </style>
         </head>
         <body>
             <h1>Escáner de Asistencia</h1>
             
-            <div id="loading">Iniciando cámara...</div>
-            <div id="cameraError">No se pudo acceder a la cámara. Por favor, asegúrese de que tiene una cámara conectada y ha dado los permisos necesarios.</div>
-            <div id="reader"></div>
+            <select id="establishmentSelect" onchange="updateEstablishment()">
+                <option value="">Seleccione un establecimiento</option>
+                <option value="establecimiento1">Establecimiento 1</option>
+                <option value="establecimiento2">Establecimiento 2</option>
+                <option value="establecimiento3">Establecimiento 3</option>
+                <option value="establecimiento4">Establecimiento 4</option>
+                <option value="establecimiento5">Establecimiento 5</option>
+            </select>
 
-            <div id="lastScanned"></div>
-            <div id="errorMessage" class="error-message">Error al registrar la asistencia</div>
-            
-            <div id="successModal" class="modal">
-                <div class="modal-content">
-                    Código escaneado exitosamente
+            <div id="scannerContainer">
+                <div id="loading">Iniciando cámara...</div>
+                <div id="cameraError">No se pudo acceder a la cámara. Por favor, asegúrese de que tiene una cámara conectada y ha dado los permisos necesarios.</div>
+                <div id="reader"></div>
+
+                <div id="lastScanned"></div>
+                <div id="errorMessage" class="error-message">Error al registrar la asistencia</div>
+                
+                <div id="successModal" class="modal">
+                    <div class="modal-content">
+                        Código escaneado exitosamente
+                    </div>
                 </div>
+                
+                <button onclick="downloadExcel()" class="download-button">Descargar Registro de Asistencia</button>
             </div>
             
-            <a href="/download-excel" class="download-button">Descargar Registro de Asistencia</a>
-            
             <script>
+                let currentEstablishment = '';
                 let isProcessing = false;
+                let html5QrCode = null;
+
+                function updateEstablishment() {
+                    const select = document.getElementById('establishmentSelect');
+                    currentEstablishment = select.value;
+                    const scannerContainer = document.getElementById('scannerContainer');
+                    
+                    if (currentEstablishment) {
+                        scannerContainer.style.display = 'block';
+                        initializeScanner();
+                    } else {
+                        scannerContainer.style.display = 'none';
+                        if (html5QrCode) {
+                            html5QrCode.stop();
+                        }
+                    }
+                }
 
                 function showSuccessModal() {
                     const modal = document.getElementById('successModal');
@@ -231,8 +282,16 @@ app.get('/', (req, res) => {
                     }, 3000);
                 }
 
+                function downloadExcel() {
+                    if (!currentEstablishment) {
+                        showError('Por favor seleccione un establecimiento');
+                        return;
+                    }
+                    window.location.href = \`/download-excel/\${currentEstablishment}\`;
+                }
+
                 function onScanSuccess(decodedText) {
-                    if (isProcessing) return;
+                    if (isProcessing || !currentEstablishment) return;
 
                     isProcessing = true;
                     try {
@@ -242,7 +301,8 @@ app.get('/', (req, res) => {
                             id: parseInt(id),
                             name: name,
                             date: now.toLocaleDateString(),
-                            time: now.toLocaleTimeString()
+                            time: now.toLocaleTimeString(),
+                            establishment: currentEstablishment
                         };
 
                         fetch('/register-attendance', {
@@ -278,8 +338,12 @@ app.get('/', (req, res) => {
                     }
                 }
 
-                document.addEventListener('DOMContentLoaded', () => {
-                    const html5QrCode = new Html5Qrcode("reader");
+                function initializeScanner() {
+                    if (html5QrCode) {
+                        html5QrCode.stop();
+                    }
+
+                    html5QrCode = new Html5Qrcode("reader");
                     const config = {
                         fps: 10,
                         qrbox: { width: 250, height: 250 },
@@ -300,7 +364,7 @@ app.get('/', (req, res) => {
                         document.getElementById('cameraError').style.display = 'block';
                         console.error('Error al iniciar el escáner:', err);
                     });
-                });
+                }
             </script>
         </body>
         </html>
@@ -313,8 +377,7 @@ app.get('/health', (req, res) => {
         status: 'OK',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
-        records: attendanceData.length,
-        recentScans: recentScans.size
+        establishments: Array.from(attendanceByEstablishment.keys())
     });
 });
 
