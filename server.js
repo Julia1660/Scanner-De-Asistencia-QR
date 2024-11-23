@@ -10,12 +10,45 @@ console.log('Starting server initialization...');
 app.use(cors());
 app.use(bodyParser.json());
 
-// Store attendance data by establishment
-const attendanceByEstablishment = new Map();
+// Store attendance data by establishment and date
+const attendanceData = new Map();
 
 // Store recent scans to prevent duplicates
 const recentScans = new Map();
 const SCAN_COOLDOWN = 5000; // 5 seconds cooldown
+
+// Get today's date in YYYY-MM-DD format
+function getTodayDate() {
+    const now = new Date();
+    return now.toISOString().split('T')[0];
+}
+
+// Initialize or get attendance data for today
+function getAttendanceForToday(establishment) {
+    const today = getTodayDate();
+    const key = `${establishment}_${today}`;
+    
+    if (!attendanceData.has(key)) {
+        attendanceData.set(key, []);
+    }
+    return attendanceData.get(key);
+}
+
+// Cleanup old records (keep only last 30 days)
+function cleanupOldRecords() {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    for (const [key] of attendanceData) {
+        const [, date] = key.split('_');
+        if (new Date(date) < thirtyDaysAgo) {
+            attendanceData.delete(key);
+        }
+    }
+}
+
+// Run cleanup daily
+setInterval(cleanupOldRecords, 24 * 60 * 60 * 1000);
 
 // Cleanup old scan records periodically
 setInterval(() => {
@@ -37,7 +70,7 @@ app.post('/register-attendance', (req, res) => {
         }
 
         const now = Date.now();
-        const scanKey = `${id}-${name}-${establishment}`;
+        const scanKey = `${id}-${name}-${establishment}-${getTodayDate()}`;
         
         // Check for recent scan
         const lastScanTime = recentScans.get(scanKey);
@@ -50,19 +83,14 @@ app.post('/register-attendance', (req, res) => {
         // Update scan time
         recentScans.set(scanKey, now);
 
-        // Initialize establishment array if not exists
-        if (!attendanceByEstablishment.has(establishment)) {
-            attendanceByEstablishment.set(establishment, []);
-        }
-
-        // Add attendance record
+        // Add attendance record for today
+        const todayRecords = getAttendanceForToday(establishment);
         const record = {
             ...req.body,
-            timestamp: now
+            timestamp: now,
+            date: new Date().toLocaleDateString()
         };
-
-        const establishmentRecords = attendanceByEstablishment.get(establishment);
-        establishmentRecords.push(record);
+        todayRecords.push(record);
 
         res.sendStatus(200);
     } catch (error) {
@@ -71,10 +99,12 @@ app.post('/register-attendance', (req, res) => {
     }
 });
 
-app.get('/download-excel/:establishment', (req, res) => {
+app.get('/download-excel/:establishment/:date?', (req, res) => {
     try {
-        const { establishment } = req.params;
-        const records = attendanceByEstablishment.get(establishment) || [];
+        const { establishment, date } = req.params;
+        const requestedDate = date || getTodayDate();
+        const key = `${establishment}_${requestedDate}`;
+        const records = attendanceData.get(key) || [];
         
         const ws = XLSX.utils.json_to_sheet(records);
         const wb = XLSX.utils.book_new();
@@ -82,12 +112,23 @@ app.get('/download-excel/:establishment', (req, res) => {
         const excelBuffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
         
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.setHeader('Content-Disposition', `attachment; filename=Asistencia_${establishment}.xlsx`);
+        res.setHeader('Content-Disposition', `attachment; filename=Asistencia_${establishment}_${requestedDate}.xlsx`);
         res.send(excelBuffer);
     } catch (error) {
         console.error('Error generating Excel:', error);
         res.status(500).send('Error al generar Excel');
     }
+});
+
+// Get available dates for an establishment
+app.get('/dates/:establishment', (req, res) => {
+    const { establishment } = req.params;
+    const dates = Array.from(attendanceData.keys())
+        .filter(key => key.startsWith(establishment + '_'))
+        .map(key => key.split('_')[1])
+        .sort()
+        .reverse();
+    res.json(dates);
 });
 
 // Página principal - con selección de establecimiento
@@ -113,7 +154,7 @@ app.get('/', (req, res) => {
                     text-align: center;
                     margin-bottom: 30px;
                 }
-                #establishmentSelect {
+                select {
                     display: block;
                     width: 100%;
                     max-width: 400px;
@@ -164,7 +205,7 @@ app.get('/', (req, res) => {
                     display: none;
                     text-align: center;
                 }
-                .download-button {
+                .button {
                     display: block;
                     margin: 20px auto;
                     padding: 10px 20px;
@@ -177,7 +218,7 @@ app.get('/', (req, res) => {
                     text-align: center;
                     width: fit-content;
                 }
-                .download-button:hover {
+                .button:hover {
                     background-color: #45a049;
                 }
                 #loading {
@@ -204,6 +245,9 @@ app.get('/', (req, res) => {
                 #scannerContainer {
                     display: none;
                 }
+                #dateSelect {
+                    margin-top: 10px;
+                }
             </style>
         </head>
         <body>
@@ -211,11 +255,11 @@ app.get('/', (req, res) => {
             
             <select id="establishmentSelect" onchange="updateEstablishment()">
                 <option value="">Seleccione un establecimiento</option>
-                <option value="establecimiento1">Establecimiento 1</option>
-                <option value="establecimiento2">Establecimiento 2</option>
-                <option value="establecimiento3">Establecimiento 3</option>
-                <option value="establecimiento4">Establecimiento 4</option>
-                <option value="establecimiento5">Establecimiento 5</option>
+                <option value="INEB_SanLucas">INEB San Lucas</option>
+                <option value="INED_SanBartolome">INED San Bartolomé</option>
+                <option value="INEB_Magdalena">INEB Magdalena</option>
+                <option value="INEB_SanAntonio">INEB San Antonio</option>
+                <option value="INEB_SantaLucia">INEB Santa Lucía</option>
             </select>
 
             <div id="scannerContainer">
@@ -232,7 +276,12 @@ app.get('/', (req, res) => {
                     </div>
                 </div>
                 
-                <button onclick="downloadExcel()" class="download-button">Descargar Registro de Asistencia</button>
+                <div>
+                    <select id="dateSelect" onchange="updateDownloadLink()" class="button">
+                        <option value="">Seleccione fecha</option>
+                    </select>
+                    <a id="downloadLink" href="#" class="button">Descargar Registro de Asistencia</a>
+                </div>
             </div>
             
             <script>
@@ -248,12 +297,40 @@ app.get('/', (req, res) => {
                     if (currentEstablishment) {
                         scannerContainer.style.display = 'block';
                         initializeScanner();
+                        loadDates();
                     } else {
                         scannerContainer.style.display = 'none';
                         if (html5QrCode) {
                             html5QrCode.stop();
                         }
                     }
+                }
+
+                function loadDates() {
+                    fetch(\`/dates/\${currentEstablishment}\`)
+                        .then(response => response.json())
+                        .then(dates => {
+                            const dateSelect = document.getElementById('dateSelect');
+                            dateSelect.innerHTML = '<option value="">Seleccione fecha</option>';
+                            dates.forEach(date => {
+                                const option = document.createElement('option');
+                                option.value = date;
+                                option.textContent = new Date(date).toLocaleDateString();
+                                dateSelect.appendChild(option);
+                            });
+                            updateDownloadLink();
+                        });
+                }
+
+                function updateDownloadLink() {
+                    const dateSelect = document.getElementById('dateSelect');
+                    const downloadLink = document.getElementById('downloadLink');
+                    const date = dateSelect.value || getTodayDate();
+                    downloadLink.href = \`/download-excel/\${currentEstablishment}/\${date}\`;
+                }
+
+                function getTodayDate() {
+                    return new Date().toISOString().split('T')[0];
                 }
 
                 function showSuccessModal() {
@@ -282,14 +359,6 @@ app.get('/', (req, res) => {
                     }, 3000);
                 }
 
-                function downloadExcel() {
-                    if (!currentEstablishment) {
-                        showError('Por favor seleccione un establecimiento');
-                        return;
-                    }
-                    window.location.href = \`/download-excel/\${currentEstablishment}\`;
-                }
-
                 function onScanSuccess(decodedText) {
                     if (isProcessing || !currentEstablishment) return;
 
@@ -316,6 +385,7 @@ app.get('/', (req, res) => {
                             if (response.ok) {
                                 updateLastScanned(name);
                                 showSuccessModal();
+                                loadDates(); // Refresh dates list
                             } else {
                                 return response.json().then(data => {
                                     showError(data.error || 'Error al registrar la asistencia');
@@ -377,7 +447,7 @@ app.get('/health', (req, res) => {
         status: 'OK',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
-        establishments: Array.from(attendanceByEstablishment.keys())
+        establishments: Array.from(new Set(Array.from(attendanceData.keys()).map(key => key.split('_')[0])))
     });
 });
 
