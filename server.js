@@ -3,12 +3,16 @@ const bodyParser = require('body-parser');
 const XLSX = require('xlsx');
 const cors = require('cors');
 const app = express();
+const path = require('path');
 
 console.log('Starting server initialization...');
 
 // Enable CORS for all routes
 app.use(cors());
 app.use(bodyParser.json());
+
+// Serve static files from public directory
+app.use(express.static('public'));
 
 // Store attendance data in memory
 let attendanceData = [];
@@ -269,7 +273,8 @@ app.get('/health', (req, res) => {
     res.status(200).json({
         status: 'OK',
         timestamp: new Date().toISOString(),
-        uptime: process.uptime()
+        uptime: process.uptime(),
+        memory: process.memoryUsage()
     });
 });
 
