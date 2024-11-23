@@ -4,6 +4,8 @@ const XLSX = require('xlsx');
 const cors = require('cors');
 const app = express();
 
+console.log('Starting server initialization...');
+
 // Enable CORS for all routes
 app.use(cors());
 app.use(bodyParser.json());
@@ -11,8 +13,15 @@ app.use(bodyParser.json());
 // Store attendance data in memory
 let attendanceData = [];
 
+// Log middleware
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+    next();
+});
+
 app.post('/register-attendance', (req, res) => {
     try {
+        console.log('Registering attendance:', req.body);
         attendanceData.push(req.body);
         res.sendStatus(200);
     } catch (error) {
@@ -23,6 +32,7 @@ app.post('/register-attendance', (req, res) => {
 
 app.get('/download-excel', (req, res) => {
     try {
+        console.log('Generating Excel file...');
         const ws = XLSX.utils.json_to_sheet(attendanceData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Asistencia');
@@ -33,6 +43,7 @@ app.get('/download-excel', (req, res) => {
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.setHeader('Content-Disposition', 'attachment; filename=Asistencia.xlsx');
         res.send(excelBuffer);
+        console.log('Excel file sent successfully');
     } catch (error) {
         console.error('Error generating Excel:', error);
         res.status(500).send('Error al generar Excel');
@@ -41,6 +52,7 @@ app.get('/download-excel', (req, res) => {
 
 // Página principal - solo escáner
 app.get('/', (req, res) => {
+    console.log('Serving main page...');
     res.send(`
         <!DOCTYPE html>
         <html lang="es">
@@ -253,10 +265,27 @@ app.get('/', (req, res) => {
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-    res.status(200).send('OK');
+    console.log('Health check requested');
+    res.status(200).json({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime()
+    });
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Servidor corriendo en puerto ${PORT}`);
+    console.log(`Server started successfully`);
+    console.log(`Running on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`Node version: ${process.version}`);
+});
+
+// Error handling
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
