@@ -10,18 +10,24 @@ console.log('Starting server initialization...');
 app.use(cors());
 app.use(bodyParser.json());
 
-// Store attendance data in memory
+// Store attendance data in memory with a limit
+const MAX_RECORDS = 1000;
 let attendanceData = [];
 
-// Store recent scans to prevent duplicates
-const recentScans = new Map(); // Map to store recent scans
-const SCAN_COOLDOWN = 5000; // 5 seconds cooldown between scans
+// Store recent scans to prevent duplicates (with automatic cleanup)
+const recentScans = new Map();
+const SCAN_COOLDOWN = 5000; // 5 seconds cooldown
+const CLEANUP_INTERVAL = 60000; // Clean up every minute
 
-// Log middleware
-app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-    next();
-});
+// Cleanup old scan records periodically
+setInterval(() => {
+    const now = Date.now();
+    for (const [key, time] of recentScans.entries()) {
+        if (now - time > SCAN_COOLDOWN) {
+            recentScans.delete(key);
+        }
+    }
+}, CLEANUP_INTERVAL);
 
 app.post('/register-attendance', (req, res) => {
     try {
@@ -29,27 +35,29 @@ app.post('/register-attendance', (req, res) => {
         const now = Date.now();
         const scanKey = `${id}-${name}`;
         
-        // Check if this code was recently scanned
+        // Check for recent scan
         const lastScanTime = recentScans.get(scanKey);
         if (lastScanTime && (now - lastScanTime) < SCAN_COOLDOWN) {
-            console.log('Duplicate scan prevented for:', scanKey);
             return res.status(429).json({
                 error: 'Por favor espere unos segundos antes de escanear nuevamente'
             });
         }
 
-        // Update last scan time
+        // Update scan time
         recentScans.set(scanKey, now);
 
-        // Clean up old entries from recentScans
-        for (const [key, time] of recentScans.entries()) {
-            if (now - time > SCAN_COOLDOWN) {
-                recentScans.delete(key);
-            }
-        }
+        // Add attendance record
+        const record = {
+            ...req.body,
+            timestamp: now
+        };
 
-        console.log('Registering attendance:', req.body);
-        attendanceData.push(req.body);
+        // Maintain max records limit
+        if (attendanceData.length >= MAX_RECORDS) {
+            attendanceData.shift(); // Remove oldest record
+        }
+        attendanceData.push(record);
+
         res.sendStatus(200);
     } catch (error) {
         console.error('Error registering attendance:', error);
@@ -59,18 +67,14 @@ app.post('/register-attendance', (req, res) => {
 
 app.get('/download-excel', (req, res) => {
     try {
-        console.log('Generating Excel file...');
         const ws = XLSX.utils.json_to_sheet(attendanceData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Asistencia');
-        
-        // Generate Excel file in memory
         const excelBuffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
         
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.setHeader('Content-Disposition', 'attachment; filename=Asistencia.xlsx');
         res.send(excelBuffer);
-        console.log('Excel file sent successfully');
     } catch (error) {
         console.error('Error generating Excel:', error);
         res.status(500).send('Error al generar Excel');
@@ -79,7 +83,6 @@ app.get('/download-excel', (req, res) => {
 
 // Página principal - solo escáner
 app.get('/', (req, res) => {
-    console.log('Serving main page...');
     res.send(`
         <!DOCTYPE html>
         <html lang="es">
@@ -229,10 +232,7 @@ app.get('/', (req, res) => {
                 }
 
                 function onScanSuccess(decodedText) {
-                    if (isProcessing) {
-                        console.log('Procesando escaneo anterior...');
-                        return;
-                    }
+                    if (isProcessing) return;
 
                     isProcessing = true;
                     try {
@@ -269,7 +269,7 @@ app.get('/', (req, res) => {
                         .finally(() => {
                             setTimeout(() => {
                                 isProcessing = false;
-                            }, 5000); // Cooldown de 5 segundos
+                            }, 5000);
                         });
                     } catch (error) {
                         console.error('Error al procesar el código QR:', error);
@@ -309,21 +309,18 @@ app.get('/', (req, res) => {
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-    console.log('Health check requested');
     res.status(200).json({
         status: 'OK',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
-        memory: process.memoryUsage()
+        records: attendanceData.length,
+        recentScans: recentScans.size
     });
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server started successfully`);
-    console.log(`Running on port ${PORT}`);
-    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`Node version: ${process.version}`);
+    console.log(`Server started on port ${PORT}`);
 });
 
 // Error handling
