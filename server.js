@@ -1,59 +1,42 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const XLSX = require('xlsx');
-const qrcode = require('qrcode');
 const cors = require('cors');
 const app = express();
-const path = require('path');
-const fs = require('fs');
 
 // Enable CORS for all routes
 app.use(cors());
-
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname)));
 
-// Ensure data persistence directories exist
-const dataDir = path.join(__dirname, 'data');
-if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir);
-}
-
-// Store attendance data in a file
-const attendanceFile = path.join(dataDir, 'attendance.json');
+// Store attendance data in memory
 let attendanceData = [];
 
-// Load existing attendance data if available
-if (fs.existsSync(attendanceFile)) {
-    try {
-        attendanceData = JSON.parse(fs.readFileSync(attendanceFile, 'utf8'));
-    } catch (error) {
-        console.error('Error loading attendance data:', error);
-    }
-}
-
-// Save attendance data to file
-function saveAttendanceData() {
-    try {
-        fs.writeFileSync(attendanceFile, JSON.stringify(attendanceData));
-    } catch (error) {
-        console.error('Error saving attendance data:', error);
-    }
-}
-
 app.post('/register-attendance', (req, res) => {
-    attendanceData.push(req.body);
-    saveAttendanceData();
-    res.sendStatus(200);
+    try {
+        attendanceData.push(req.body);
+        res.sendStatus(200);
+    } catch (error) {
+        console.error('Error registering attendance:', error);
+        res.status(500).send('Error al registrar asistencia');
+    }
 });
 
 app.get('/download-excel', (req, res) => {
-    const ws = XLSX.utils.json_to_sheet(attendanceData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Asistencia');
-    const filePath = path.join(dataDir, 'Asistencia.xlsx');
-    XLSX.writeFile(wb, filePath);
-    res.download(filePath);
+    try {
+        const ws = XLSX.utils.json_to_sheet(attendanceData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Asistencia');
+        
+        // Generate Excel file in memory
+        const excelBuffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+        
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', 'attachment; filename=Asistencia.xlsx');
+        res.send(excelBuffer);
+    } catch (error) {
+        console.error('Error generating Excel:', error);
+        res.status(500).send('Error al generar Excel');
+    }
 });
 
 // Página principal - solo escáner
@@ -268,25 +251,9 @@ app.get('/', (req, res) => {
     `);
 });
 
-// Ruta para generar QR
-app.get('/generate', async (req, res) => {
-    const qrDirectory = path.join(__dirname, 'qr_codes');
-    if (!fs.existsSync(qrDirectory)) {
-        fs.mkdirSync(qrDirectory);
-    }
-
-    try {
-        for (let i = 1; i <= 1000; i++) {
-            const id = i.toString().padStart(4, '0');
-            const data = `${id}|NOMBRE_${id}`;
-            const qrPath = path.join(qrDirectory, `qr_${id}.png`);
-            await qrcode.toFile(qrPath, data);
-        }
-
-        res.send('QR codes generated successfully in qr_codes directory');
-    } catch (error) {
-        res.status(500).send('Error generating QR codes: ' + error.message);
-    }
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).send('OK');
 });
 
 const PORT = process.env.PORT || 3000;
