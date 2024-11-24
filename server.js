@@ -255,7 +255,7 @@ app.get('/', (req, res) => {
             
             <select id="establishmentSelect" onchange="updateEstablishment()">
                 <option value="">Seleccione un establecimiento</option>
-                <option value="INEB_SanLucas">INEB San Lucas</option>
+                <option value="INEB_EnriqueGomez">INEB Enrique Gómez Carrillo</option>
                 <option value="INED_SanBartolome">INED San Bartolomé</option>
                 <option value="INEB_Magdalena">INEB Magdalena</option>
                 <option value="INEB_SanAntonio">INEB San Antonio</option>
