@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Asistencia QR</title>
+</head>
+<body>
+    <h1>Selecciona un grado</h1>
+    <select id="gradeSelect">
+        <option value="">Selecciona un grado</option>
+        <option value="1ro básico">1ro básico</option>
+        <option value="2do básico">2do básico</option>
+        <option value="3ro básico">3ro básico</option>
+    </select>
+    <button id="generateQR">Generar QR</button>
+
+    <script>
+        document.getElementById('generateQR').addEventListener('click', function() {
+            const selectedGrade = document.getElementById('gradeSelect').value;
+            if (selectedGrade) {
+                // Fetch students based on selected grade
+                fetch(`/students/grade/${encodeURIComponent(selectedGrade)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data);
+                        // Logic to display QR codes or further processing
+                    })
+                    .catch(error => console.error('Error fetching students:', error));
+            } else {
+                alert('Por favor, selecciona un grado.');
+            }
+        });
+    </script>
+</body>
+</html>
