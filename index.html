@@ -15,6 +15,27 @@
     </select>
     <button id="generateQR">Generar QR</button>
 
+    <div id="scannerContainer" style="display:none;">
+        <div id="loading">Iniciando cámara...</div>
+        <div id="cameraError" style="display:none;">No se pudo acceder a la cámara. Por favor, asegúrese de que tiene una cámara conectada y ha dado los permisos necesarios.</div>
+        <div id="reader"></div>
+        <div id="lastScanned" style="display:none;"></div>
+        <div id="errorMessage" class="error-message" style="display:none;">Error al registrar la asistencia</div>
+        
+        <div id="successModal" class="modal" style="display:none;">
+            <div class="modal-content">
+                Código escaneado exitosamente
+            </div>
+        </div>
+        
+        <div>
+            <select id="dateSelect" onchange="updateDownloadLink()" class="button">
+                <option value="">Seleccione fecha</option>
+            </select>
+            <a id="downloadLink" href="#" class="button">Descargar Registro de Asistencia</a>
+        </div>
+    </div>
+    
     <script>
         document.getElementById('generateQR').addEventListener('click', function() {
             const selectedGrade = document.getElementById('gradeSelect').value;
