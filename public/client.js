@@ -92,6 +92,9 @@ function downloadAttendance() {
     XLSX.writeFile(workbook, `${grade}_asistencia.xlsx`);
 }
 
+// Iniciar la cámara al cargar la página
+startScanner();
+
 document.getElementById('gradeSelect').addEventListener('change', (event) => {
     const selectedGrade = event.target.value;
     const selectedSection = document.getElementById('sectionSelect').value; // Asegúrate de tener un select para la sección
