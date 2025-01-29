@@ -3,55 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Asistencia QR</title>
+    <title>Escaner de Asistencia</title>
+    <style>
+        body {
+            background-color: #d0f0c0; /* Verde pálido */
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        h1 {
+            color: black;
+        }
+        #gradeSelect {
+            margin: 20px;
+        }
+        #qrScanner {
+            margin: 20px;
+        }
+        .marked {
+            background-color: blue;
+            border-radius: 50%;
+            width: 10px;
+            height: 10px;
+            display: inline-block;
+        }
+    </style>
 </head>
 <body>
-    <h1>Selecciona un grado</h1>
-    <select id="gradeSelect">
-        <option value="">Selecciona un grado</option>
-        <option value="1ro básico">1ro básico</option>
-        <option value="2do básico">2do básico</option>
-        <option value="3ro básico">3ro básico</option>
-    </select>
-    <button id="generateQR">Generar QR</button>
-
-    <div id="scannerContainer" style="display:none;">
-        <div id="loading">Iniciando cámara...</div>
-        <div id="cameraError" style="display:none;">No se pudo acceder a la cámara. Por favor, asegúrese de que tiene una cámara conectada y ha dado los permisos necesarios.</div>
-        <div id="reader"></div>
-        <div id="lastScanned" style="display:none;"></div>
-        <div id="errorMessage" class="error-message" style="display:none;">Error al registrar la asistencia</div>
-        
-        <div id="successModal" class="modal" style="display:none;">
-            <div class="modal-content">
-                Código escaneado exitosamente
-            </div>
-        </div>
-        
-        <div>
-            <select id="dateSelect" onchange="updateDownloadLink()" class="button">
-                <option value="">Seleccione fecha</option>
-            </select>
-            <a id="downloadLink" href="#" class="button">Descargar Registro de Asistencia</a>
-        </div>
+    <h1>Escaner de Asistencia</h1>
+    <div>
+        <label for="gradeSelect">Seleccione Grado:</label>
+        <select id="gradeSelect">
+            <option value="1ro Básico A">1ro Básico A</option>
+            <option value="1ro Básico B">1ro Básico B</option>
+            <option value="1ro Básico C">1ro Básico C</option>
+            <option value="2do Básico A">2do Básico A</option>
+            <option value="2do Básico B">2do Básico B</option>
+            <option value="3ro Básico A">3ro Básico A</option>
+            <option value="3ro Básico B">3ro Básico B</option>
+        </select>
     </div>
-    
-    <script>
-        document.getElementById('generateQR').addEventListener('click', function() {
-            const selectedGrade = document.getElementById('gradeSelect').value;
-            if (selectedGrade) {
-                // Fetch students based on selected grade
-                fetch(`/students/grade/${encodeURIComponent(selectedGrade)}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log(data);
-                        // Logic to display QR codes or further processing
-                    })
-                    .catch(error => console.error('Error fetching students:', error));
-            } else {
-                alert('Por favor, selecciona un grado.');
-            }
-        });
-    </script>
+    <div id="qrScanner">
+        <!-- Aquí se integrará la cámara para escanear códigos QR -->
+    </div>
+    <div id="message"></div>
+    <div>
+        <label for="dateSelect">Seleccione Fecha:</label>
+        <input type="date" id="dateSelect" onchange="markAttendance()">
+        <div id="attendanceMarkers"></div>
+    </div>
+    <button id="downloadButton">Descargar Asistencia</button>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js"></script>
+    <script src="client.js"></script>
 </body>
 </html>

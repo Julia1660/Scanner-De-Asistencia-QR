@@ -10,7 +10,7 @@ console.log('Starting server initialization...');
 app.use(cors());
 app.use(bodyParser.json());
 
-// Store attendance data by establishment and date
+// Store attendance data by grade and section
 const attendanceData = new Map();
 
 // Store recent scans to prevent duplicates
@@ -24,9 +24,9 @@ function getTodayDate() {
 }
 
 // Initialize or get attendance data for today
-function getAttendanceForToday(establishment) {
+function getAttendanceForToday(grade, section) {
     const today = getTodayDate();
-    const key = \`\${establishment}_\${today}\`;
+    const key = \`\${grade}_\${section}_\${today}\`;
     
     if (!attendanceData.has(key)) {
         attendanceData.set(key, []);
@@ -40,7 +40,7 @@ function cleanupOldRecords() {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     
     for (const [key] of attendanceData) {
-        const [, date] = key.split('_');
+        const [, , date] = key.split('_');
         if (new Date(date) < thirtyDaysAgo) {
             attendanceData.delete(key);
         }
@@ -62,15 +62,15 @@ setInterval(() => {
 
 app.post('/register-attendance', (req, res) => {
     try {
-        const { id, name, establishment } = req.body;
-        if (!establishment) {
+        const { id, name, grade, section } = req.body;
+        if (!grade || !section) {
             return res.status(400).json({
-                error: 'Establecimiento no especificado'
+                error: 'Grado o sección no especificados'
             });
         }
 
         const now = Date.now();
-        const scanKey = \`\${id}-\${name}-\${establishment}-\${getTodayDate()}\`;
+        const scanKey = \`\${id}-\${name}-\${grade}-\${section}-\${getTodayDate()}\`;
         
         // Check for recent scan
         const lastScanTime = recentScans.get(scanKey);
@@ -84,7 +84,7 @@ app.post('/register-attendance', (req, res) => {
         recentScans.set(scanKey, now);
 
         // Add attendance record for today
-        const todayRecords = getAttendanceForToday(establishment);
+        const todayRecords = getAttendanceForToday(grade, section);
         const record = {
             ...req.body,
             timestamp: now,
@@ -99,11 +99,11 @@ app.post('/register-attendance', (req, res) => {
     }
 });
 
-app.get('/download-excel/:establishment/:date?', (req, res) => {
+app.get('/download-excel/:grade/:section/:date?', (req, res) => {
     try {
-        const { establishment, date } = req.params;
+        const { grade, section, date } = req.params;
         const requestedDate = date || getTodayDate();
-        const key = \`\${establishment}_\${requestedDate}\`;
+        const key = \`\${grade}_\${section}_\${requestedDate}\`;
         const records = attendanceData.get(key) || [];
         
         const ws = XLSX.utils.json_to_sheet(records);
@@ -112,7 +112,7 @@ app.get('/download-excel/:establishment/:date?', (req, res) => {
         const excelBuffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
         
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.setHeader('Content-Disposition', \`attachment; filename=Asistencia_\${establishment}_\${requestedDate}.xlsx\`);
+        res.setHeader('Content-Disposition', \`attachment; filename=Asistencia_\${grade}_\${section}_\${requestedDate}.xlsx\`);
         res.send(excelBuffer);
     } catch (error) {
         console.error('Error generating Excel:', error);
@@ -120,18 +120,18 @@ app.get('/download-excel/:establishment/:date?', (req, res) => {
     }
 });
 
-// Get available dates for an establishment
-app.get('/dates/:establishment', (req, res) => {
-    const { establishment } = req.params;
+// Get available dates for a grade and section
+app.get('/dates/:grade/:section', (req, res) => {
+    const { grade, section } = req.params;
     const dates = Array.from(attendanceData.keys())
-        .filter(key => key.startsWith(establishment + '_'))
-        .map(key => key.split('_')[1])
+        .filter(key => key.startsWith(\`\${grade}_\${section}_\`))
+        .map(key => key.split('_')[2])
         .sort()
         .reverse();
     res.json(dates);
 });
 
-// Página principal - con selección de establecimiento
+// Página principal - con selección de grado y sección
 app.get('/', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -147,10 +147,10 @@ app.get('/', (req, res) => {
                     max-width: 800px;
                     margin: 0 auto;
                     padding: 20px;
-                    background-color: #f5f5f5;
+                    background-color: #e0f7fa; /* Color verde pálido */
                 }
                 h1 {
-                    color: #333;
+                    color: black; /* Título en negro */
                     text-align: center;
                     margin-bottom: 30px;
                 }
@@ -259,6 +259,23 @@ app.get('/', (req, res) => {
                 <option value="2do básico">2do básico</option>
                 <option value="3ro básico">3ro básico</option>
             </select>
+            <select id="sectionSelect">
+                <option value="">Selecciona una sección</option>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+                <option value="E">E</option>
+                <option value="F">F</option>
+                <option value="G">G</option>
+                <option value="H">H</option>
+                <option value="I">I</option>
+                <option value="J">J</option>
+                <option value="K">K</option>
+                <option value="L">L</option>
+                <option value="M">M</option>
+                <option value="N">N</option>
+            </select>
             <button id="generateQR">Generar QR</button>
 
             <div id="scannerContainer">
@@ -290,7 +307,8 @@ app.get('/', (req, res) => {
 
                 function updateEstablishment() {
                     const select = document.getElementById('gradeSelect');
-                    currentEstablishment = select.value;
+                    const sectionSelect = document.getElementById('sectionSelect');
+                    currentEstablishment = select.value + '-' + sectionSelect.value;
                     const scannerContainer = document.getElementById('scannerContainer');
                     
                     if (currentEstablishment) {
@@ -306,7 +324,9 @@ app.get('/', (req, res) => {
                 }
 
                 function loadDates() {
-                    fetch(\`/dates/\${currentEstablishment}\`)
+                    const sectionSelect = document.getElementById('sectionSelect');
+                    const gradeSelect = document.getElementById('gradeSelect');
+                    fetch(\`/dates/\${gradeSelect.value}/\${sectionSelect.value}\`)
                         .then(response => response.json())
                         .then(dates => {
                             const dateSelect = document.getElementById('dateSelect');
@@ -325,7 +345,8 @@ app.get('/', (req, res) => {
                     const dateSelect = document.getElementById('dateSelect');
                     const downloadLink = document.getElementById('downloadLink');
                     const date = dateSelect.value || getTodayDate();
-                    downloadLink.href = \`/download-excel/\${currentEstablishment}/\${date}\`;
+                    const sectionSelect = document.getElementById('sectionSelect');
+                    downloadLink.href = \`/download-excel/\${gradeSelect.value}/\${sectionSelect.value}/\${date}\`;
                 }
 
                 function getTodayDate() {
