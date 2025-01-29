@@ -6,9 +6,8 @@
     "start": "node server.js",
     "dev": "node server.js"
   },
-"engines": {
-  "node": "18.x"
-
+  "engines": {
+    "node": "18.x"
   },
   "dependencies": {
     "body-parser": "1.19.0",
@@ -17,7 +16,7 @@
     "jimp": "^1.6.0",
     "qrcode": "^1.4.4",
     "qrcode-reader": "^1.0.4",
-    "xlsx": "0.16.9"
+    "xlsx": "^0.17.0"
   },
   "description": "Sistema de asistencia con QR"
 }
