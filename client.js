@@ -72,10 +72,25 @@ function downloadAttendance() {
     const grade = document.getElementById('gradeSelect').value;
     const data = attendance[grade]; // Obtener los datos de asistencia
     const workbook = XLSX.utils.book_new(); // Crear un nuevo libro de Excel
-    const worksheet = XLSX.utils.json_to_sheet(data); // Convertir los datos a una hoja de Excel
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Asistencia'); // Agregar la hoja al libro
-    XLSX.writeFile(workbook, `${grade}_asistencia.xlsx`); // Descargar el archivo de Excel
+    const worksheetData = [];
+
+    // Agregar encabezados
+    worksheetData.push(["ID", "Nombre", "Grado", "Sección", "Hora de Registro", "Fecha"]);
+
+    // Agregar datos de asistencia
+    for (const date in data) {
+        data[date].forEach(record => {
+            worksheetData.push([record.id, "Nombre del Estudiante", grade, record.section, new Date().toLocaleTimeString(), date]);
+        });
+    }
+
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Asistencia");
+
+    // Descargar el archivo de Excel
+    XLSX.writeFile(workbook, `${grade}_asistencia.xlsx`);
 }
+
 
 
 document.getElementById('gradeSelect').addEventListener('change', (event) => {
