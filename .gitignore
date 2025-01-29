@@ -1,6 +1,2 @@
-# Ignorar archivos y carpetas innecesarios
-client/
-# Logs
-*.log
-# Node modules
-node_modules/
+# Ignorar archivos temporales de Excel
+~$*

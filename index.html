@@ -3,76 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Escaner de Asistencia</title>
-    <style>
-        body {
-            background-color: #d0f0c0; /* Verde pálido */
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-        h1 {
-            color: black;
-        }
-        #gradeSelect, #sectionSelect {
-            margin: 20px;
-        }
-        #qrScanner {
-            margin: 20px;
-            display: none; /* Ocultar inicialmente */
-        }
-        .marked {
-            background-color: blue;
-            border-radius: 50%;
-            width: 10px;
-            height: 10px;
-            display: inline-block;
-        }
-    </style>
+    <title>Escáner de QR - Registro de Asistencia</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
 </head>
 <body>
-    <h1>Escaner de Asistencia</h1>
-    <div>
-        <label for="gradeSelect">Seleccione Grado:</label>
-        <select id="gradeSelect">
-            <option value="1ro Básico A">1ro Básico A</option>
-            <option value="1ro Básico B">1ro Básico B</option>
-            <option value="1ro Básico C">1ro Básico C</option>
-            <option value="1ro Básico D">1ro Básico D</option>
-            <option value="1ro Básico E">1ro Básico E</option>
-            <option value="1ro Básico F">1ro Básico F</option>
-            <option value="1ro Básico G">1ro Básico G</option>
-            <option value="1ro Básico H">1ro Básico H</option>
-            <option value="1ro Básico I">1ro Básico I</option>
-            <option value="1ro Básico J">1ro Básico J</option>
-            <option value="1ro Básico K">1ro Básico K</option>
-            <option value="1ro Básico M">1ro Básico M</option>
-            <option value="1ro Básico N">1ro Básico N</option>
-            <option value="2do Básico A">2do Básico A</option>
-            <option value="2do Básico B">2do Básico B</option>
-            <option value="2do Básico C">2do Básico C</option>
-            <option value="2do Básico D">2do Básico D</option>
-            <option value="2do Básico E">2do Básico E</option>
-            <option value="2do Básico F">2do Básico F</option>
-            <option value="3ro Básico A">3ro Básico A</option>
-            <option value="3ro Básico B">3ro Básico B</option>
-            <option value="3ro Básico C">3ro Básico C</option>
-            <option value="3ro Básico D">3ro Básico D</option>
-            <option value="3ro Básico E">3ro Básico E</option>
-        </select>
+    <div class="container">
+        <h1>Escáner de QR - Registro de Asistencia</h1>
+        <div id="reader" style="width: 600px;"></div>
+        <div id="result" class="result"></div>
     </div>
-    
-    <div id="qrScanner">
-        <!-- Aquí se integrará la cámara para escanear códigos QR -->
-        <video id="video" width="300" height="200" autoplay></video>
-    </div>
-    <div id="message"></div>
-    <div>
-        <label for="dateSelect">Seleccione Fecha:</label>
-        <input type="date" id="dateSelect" onchange="markAttendance()">
-        <div id="attendanceMarkers"></div>
-    </div>
-    <button id="downloadButton">Descargar Asistencia</button>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js"></script>
-    <script src="public/client.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

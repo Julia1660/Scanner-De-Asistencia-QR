@@ -1,1 +1,0 @@
-web: node scanner.js
