@@ -6,6 +6,10 @@ function startScanner() {
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
 
+    // Agregar el elemento de video al contenedor
+    const qrScannerDiv = document.getElementById('qrScanner');
+    qrScannerDiv.appendChild(video);
+
     navigator.mediaDevices.getUserMedia({ video: true })
         .then(stream => {
             video.srcObject = stream;
