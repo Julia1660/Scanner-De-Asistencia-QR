@@ -1,6 +1,6 @@
+# Ignorar archivos y carpetas innecesarios
+client/
+# Logs
+*.log
+# Node modules
 node_modules/
-.env
-data/
-*.xlsx
-qr_codes/
-.vscode/
