@@ -31,49 +31,39 @@
 <body>
     <h1>Escaner de Asistencia</h1>
     <div>
-    <label for="gradeSelect">Seleccione Grado:</label>
+    
     <select id="gradeSelect">
-        <option value="1ro Básico A">1ro Básico A</option>
-        <option value="1ro Básico B">1ro Básico B</option>
-        <option value="1ro Básico C">1ro Básico C</option>
-        <option value="2do Básico A">2do Básico A</option>
-        <option value="2do Básico B">2do Básico B</option>
-        <option value="3ro Básico A">3ro Básico A</option>
-        <option value="3ro Básico B">3ro Básico B</option>
-        <option value="1ro Básico A">1ro Básico A</option>
-        <option value="1ro Básico B">1ro Básico B</option>
-        <option value="1ro Básico C">1ro Básico C</option>
-        <option value="2do Básico A">2do Básico A</option>
-        <option value="2do Básico B">2do Básico B</option>
-        <option value="3ro Básico A">3ro Básico A</option>
-        <option value="3ro Básico B">3ro Básico B</option>
-
             <option value="1ro Básico A">1ro Básico A</option>
-            <option value="1ro Básico A">1ro Básico B</option>
-            <option value="1ro Básico A">1ro Básico C</option>
-            <option value="1ro Básico A">1ro Básico D</option>
-            <option value="1ro Básico A">1ro Básico F</option>
-            <option value="1ro Básico B">1ro Básico G</option>
-            <option value="1ro Básico C">1ro Básico H</option>
-            <option value="1ro Básico A">1ro Básico I</option>
-            <option value="1ro Básico A">1ro Básico J</option>
-            <option value="1ro Básico A">1ro Básico K</option>
-            <option value="1ro Básico A">1ro Básico M</option>
+            <option value="1ro Básico B">1ro Básico B</option>
+            <option value="1ro Básico C">1ro Básico C</option>
+            <option value="1ro Básico D">1ro Básico D</option>
+            <option value="1ro Básico E">1ro Básico E</option>
+            <option value="1ro Básico F">1ro Básico F</option>
+            <option value="1ro Básico G">1ro Básico G</option>
+            <option value="1ro Básico H">1ro Básico H</option>
+            <option value="1ro Básico I">1ro Básico I</option>
+            <option value="1ro Básico J">1ro Básico J</option>
+            <option value="1ro Básico K">1ro Básico K</option>
+            <option value="1ro Básico M">1ro Básico M</option>
+            <option value="1ro Básico N">1ro Básico N</option>
             <option value="2do Básico A">2do Básico A</option>
             <option value="2do Básico B">2do Básico B</option>
-            <option value="2do Básico A">2do Básico C</option>
-            <option value="2do Básico A">2do Básico D</option>
-            <option value="2do Básico A">2do Básico F</option>
+            <option value="2do Básico C">2do Básico C</option>
+            <option value="2do Básico D">2do Básico D</option>
+            <option value="2do Básico E">2do Básico E</option>
+            <option value="2do Básico F">2do Básico F</option>
             <option value="3ro Básico A">3ro Básico A</option>
             <option value="3ro Básico B">3ro Básico B</option>
-            <option value="3ro Básico B">3ro Básico C</option>
-            <option value="3ro Básico B">3ro Básico D</option>
-            <option value="3ro Básico B">3ro Básico E</option>
+            <option value="3ro Básico C">3ro Básico C</option>
+            <option value="3ro Básico D">3ro Básico D</option>
+            <option value="3ro Básico E">3ro Básico E</option>
         </select>
     </div>
     <div id="qrScanner">
         <!-- Aquí se integrará la cámara para escanear códigos QR -->
+        <video id="video" width="300" height="200" autoplay></video>
     </div>
+
     <div id="message"></div>
     <div>
         <label for="dateSelect">Seleccione Fecha:</label>
