@@ -79,7 +79,9 @@ function downloadAttendance() {
     URL.revokeObjectURL(url);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    startScanner();
-    document.getElementById('downloadButton').addEventListener('click', downloadAttendance);
+document.getElementById('gradeSelect').addEventListener('change', (event) => {
+    const selectedGrade = event.target.value;
+    if (selectedGrade) {
+        startScanner();
+    }
 });
