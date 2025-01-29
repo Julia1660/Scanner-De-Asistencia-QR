@@ -70,6 +70,24 @@ function markAttendance() {
 
 function downloadAttendance() {
     const grade = document.getElementById('gradeSelect').value;
+    const data = attendance[grade]; // Obtener los datos de asistencia
+    const workbook = XLSX.utils.book_new(); // Crear un nuevo libro de Excel
+    const worksheet = XLSX.utils.json_to_sheet(data); // Convertir los datos a una hoja de Excel
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Asistencia'); // Agregar la hoja al libro
+    XLSX.writeFile(workbook, `${grade}_asistencia.xlsx`); // Descargar el archivo de Excel
+}
+
+
+document.getElementById('gradeSelect').addEventListener('change', (event) => {
+    const selectedGrade = event.target.value;
+    const selectedSection = document.getElementById('sectionSelect').value; // Asegúrate de tener un select para la sección
+    if (selectedGrade && selectedSection) {
+        // Mostrar la cámara
+        startScanner();
+    }
+});
+function downloadAttendance() {
+    const grade = document.getElementById('gradeSelect').value;
     const data = JSON.stringify(attendance[grade], null, 2);
     const blob = new Blob([data], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -78,7 +96,10 @@ function downloadAttendance() {
     a.download = `${grade}_asistencia.json`;
     a.click();
     URL.revokeObjectURL(url);
+    
+    // Aquí se puede agregar la lógica para generar un archivo de Excel
 }
+
 
 document.getElementById('gradeSelect').addEventListener('change', (event) => {
     const selectedGrade = event.target.value;
