@@ -20,7 +20,6 @@ function registerAttendance(studentData) {
     resultDiv.innerHTML = `<p>Asistencia Registrada: ${studentData.name} (${studentData.id}) - ${studentData.timestamp}</p>`;
 }
 
-// Iniciar el escáner
 html5QrCode.start(
     { facingMode: "environment" },
     {
@@ -31,6 +30,7 @@ html5QrCode.start(
     (errorMessage) => {
         console.error(`Error de escaneo: ${errorMessage}`);
     }
+
 ).catch(err => {
     console.error(`Error al iniciar el escáner: ${err}`);
 });
