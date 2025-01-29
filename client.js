@@ -82,6 +82,28 @@ function downloadAttendance() {
 document.getElementById('gradeSelect').addEventListener('change', (event) => {
     const selectedGrade = event.target.value;
     if (selectedGrade) {
+        // Mostrar la cámara
+        startScanner();
+    }
+});
+function downloadAttendance() {
+    const grade = document.getElementById('gradeSelect').value;
+    const data = JSON.stringify(attendance[grade], null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${grade}_asistencia.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    // Aquí se puede agregar la lógica para generar un archivo de Excel
+}
+
+
+document.getElementById('gradeSelect').addEventListener('change', (event) => {
+    const selectedGrade = event.target.value;
+    if (selectedGrade) {
         startScanner();
     }
 });
