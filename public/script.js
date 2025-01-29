@@ -28,7 +28,7 @@ html5QrCode.start(
     },
     onScanSuccess,
     (errorMessage) => {
-        // Manejar errores de escaneo
+        console.error(`Error de escaneo: ${errorMessage}`);
     }
 ).catch(err => {
     console.error(`Error al iniciar el escáner: ${err}`);
