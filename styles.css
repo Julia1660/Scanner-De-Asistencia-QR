@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
@@ -24,3 +25,50 @@ h1 {
     font-size: 1.2em;
     color: green;
 }
+=======
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0; /* Fondo gris */
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 600px;
+    margin: auto;
+    text-align: center;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 20px; /* Espacio debajo del título */
+}
+
+#reader {
+    border: 5px solid pink; /* Marco rosado para la cámara */
+    border-radius: 8px; /* Bordes redondeados */
+    margin: 0 auto; /* Centrar el recuadro */
+}
+
+.result {
+    margin-top: 20px;
+    font-size: 1.2em;
+    color: green;
+}
+
+/* Nuevos estilos para el menú */
+.menu {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+>>>>>>> 97b421d7b97a40753983f0f30c92c668950c1411

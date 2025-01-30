@@ -30,7 +30,10 @@ html5QrCode.start(
     (errorMessage) => {
         console.error(`Error de escaneo: ${errorMessage}`);
     }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 97b421d7b97a40753983f0f30c92c668950c1411
 ).catch(err => {
     console.error(`Error al iniciar el escáner: ${err}`);
 });
