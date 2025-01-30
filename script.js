@@ -1,6 +1,7 @@
 const html5QrCode = new Html5Qrcode("reader");
 
 function onScanSuccess(qrCodeMessage) {
+    console.log("Código QR escaneado:", qrCodeMessage);
     const studentData = parseQRCode(qrCodeMessage);
     registerAttendance(studentData);
 }
@@ -31,6 +32,8 @@ html5QrCode.start(
     (errorMessage) => {
         console.error(`Error de escaneo: ${errorMessage}`);
     }
-).catch(err => {
+).then(() => {
+    console.log("Escáner iniciado correctamente");
+}).catch(err => {
     console.error(`Error al iniciar el escáner: ${err}`);
 });
