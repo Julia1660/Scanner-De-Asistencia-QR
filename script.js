@@ -28,12 +28,12 @@ function buscarAsistencia() {
     resultDiv.innerHTML = `<h2>Asistencia por Alumno</h2>
                           <input type="text" placeholder="ID del estudiante" value="${id}">
                           <button onclick="mostrarAsistencia('${id}')">Buscar</button>`;
-    // Aquí se implementará la lógica para buscar y mostrar la asistencia
 }
 
 // Función para mostrar la asistencia
 function mostrarAsistencia(id) {
     console.log(`Mostrando asistencia para el ID: ${id}`);
+    // Aquí se implementará la lógica para mostrar la asistencia registrada
 }
 
 // Iniciar el escáner
