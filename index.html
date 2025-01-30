@@ -5,13 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Escáner QR - Registro de Asistencia</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode/minified/html5-qrcode.min.js"></script>
 </head>
 <body>
     <div class="container">
         <h1>Escáner QR - Registro de Asistencia</h1>
         <div id="reader" style="width: 600px;"></div>
         <div id="result" class="result"></div>
+    </div>
+    <div class="menu">
+        <h2>Menú</h2>
+        <div class="menu-item" onclick="buscarAsistencia()">Buscar Asistencia por Alumno</div>
+        <div class="menu-item" onclick="verTodasAsistencias()">Todas las Asistencias</div>
+        <button id="downloadBtn">Descargar Asistencia</button>
     </div>
     <script src="script.js"></script>
     <script src="testCamera.js"></script>
