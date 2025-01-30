@@ -24,8 +24,15 @@ function registerAttendance(studentData) {
 // Función para buscar asistencia por alumno
 function buscarAsistencia() {
     const id = prompt("Ingresa el ID del estudiante:");
-    // Aquí se implementará la lógica para buscar y mostrar la asistencia
-    console.log(`Buscando asistencia para el ID: ${id}`);
+    const resultDiv = document.getElementById("result");
+    resultDiv.innerHTML = `<h2>Asistencia por Alumno</h2>
+                          <input type="text" placeholder="ID del estudiante" value="${id}">
+                          <button onclick="mostrarAsistencia('${id}')">Buscar</button>`;
+}
+
+// Función para mostrar la asistencia
+function mostrarAsistencia(id) {
+    console.log(`Mostrando asistencia para el ID: ${id}`);
 }
 
 // Iniciar el escáner
