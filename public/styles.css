@@ -24,7 +24,9 @@ h1 {
     border: 5px solid pink; /* Marco rosado para la cámara */
     border-radius: 8px; /* Bordes redondeados */
     margin: 0 auto; /* Centrar el recuadro */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Sombra para el recuadro */
 }
+
 
 .result {
     margin-top: 20px;
