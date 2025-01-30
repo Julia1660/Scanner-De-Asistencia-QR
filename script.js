@@ -21,6 +21,11 @@ function registerAttendance(studentData) {
     resultDiv.innerHTML = `<p>Asistencia Registrada: ${studentData.name} (${studentData.id}) - ${studentData.timestamp}</p>`;
 }
 
+function toggleMenu() {
+    const dropdown = document.getElementById("dropdown");
+    dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
+}
+
 // Función para buscar asistencia por alumno
 function buscarAsistencia() {
     const id = prompt("Ingresa el ID del estudiante:");
