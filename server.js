@@ -37,7 +37,8 @@ app.post('/register', (req, res) => {
     });
 });
 
-// Iniciar el servidor
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
+    console.log("Ruta de registro: /register");
+    console.log("Ruta principal: /");
 });
