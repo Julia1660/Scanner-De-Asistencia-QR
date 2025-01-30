@@ -25,6 +25,7 @@ function toggleMenu() {
     console.log("Toggle Menu function called"); // Registro para depuración
     const dropdown = document.getElementById("dropdown");
     dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
+    // Agregar lógica para cerrar el menú si se hace clic fuera de él
 }
 
 // Función para buscar asistencia por alumno
