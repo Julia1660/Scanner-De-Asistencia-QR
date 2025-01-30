@@ -22,6 +22,7 @@ function registerAttendance(studentData) {
 }
 
 function toggleMenu() {
+    console.log("Toggle Menu function called"); // Registro para depuración
     const dropdown = document.getElementById("dropdown");
     dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
 }
