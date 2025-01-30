@@ -21,6 +21,13 @@ function registerAttendance(studentData) {
     resultDiv.innerHTML = `<p>Asistencia Registrada: ${studentData.name} (${studentData.id}) - ${studentData.timestamp}</p>`;
 }
 
+// Función para buscar asistencia por alumno
+function buscarAsistencia() {
+    const id = prompt("Ingresa el ID del estudiante:");
+    // Aquí se implementará la lógica para buscar y mostrar la asistencia
+    console.log(`Buscando asistencia para el ID: ${id}`);
+}
+
 // Iniciar el escáner
 html5QrCode.start(
     { facingMode: "environment" },
