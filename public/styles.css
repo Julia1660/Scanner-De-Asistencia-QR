@@ -1,0 +1,33 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0; /* Fondo gris */
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 600px;
+    margin: auto;
+    text-align: center;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 20px; /* Espacio debajo del título */
+}
+
+#reader {
+    border: 5px solid pink; /* Marco rosado para la cámara */
+    border-radius: 8px; /* Bordes redondeados */
+    margin: 0 auto; /* Centrar el recuadro */
+}
+
+.result {
+    margin-top: 20px;
+    font-size: 1.2em;
+    color: green;
+}
