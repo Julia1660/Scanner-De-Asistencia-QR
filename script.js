@@ -25,7 +25,6 @@ function toggleMenu() {
     console.log("Toggle Menu function called"); // Registro para depuración
     const dropdown = document.getElementById("dropdown");
     dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
-    // Agregar lógica para cerrar el menú si se hace clic fuera de él
 }
 
 // Función para buscar asistencia por alumno
@@ -40,7 +39,6 @@ function buscarAsistencia() {
 // Función para mostrar la asistencia
 function mostrarAsistencia(id) {
     console.log(`Mostrando asistencia para el ID: ${id}`);
-    // Aquí se implementará la lógica para mostrar la asistencia registrada
     const resultDiv = document.getElementById("result");
     resultDiv.innerHTML = `<h2>Asistencia para el ID: ${id}</h2>`;
     // Aquí puedes agregar la lógica para recuperar y mostrar la asistencia del alumno
