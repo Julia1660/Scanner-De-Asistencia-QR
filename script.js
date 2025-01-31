@@ -42,6 +42,13 @@ function mostrarAsistencia(id) {
     const resultDiv = document.getElementById("result");
     resultDiv.innerHTML = `<h2>Asistencia para el ID: ${id}</h2>`;
     // Aquí puedes agregar la lógica para recuperar y mostrar la asistencia del alumno
+    // Simulación de datos de asistencia
+    const attendanceData = [
+        { date: "2023-10-01", status: "Presente" },
+        { date: "2023-10-02", status: "Ausente" },
+        { date: "2023-10-03", status: "Presente" }
+    ];
+    resultDiv.innerHTML += `<ul>${attendanceData.map(record => `<li>${record.date}: ${record.status}</li>`).join('')}</ul>`;
 }
 
 // Iniciar el escáner
