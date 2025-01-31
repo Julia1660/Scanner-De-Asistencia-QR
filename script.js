@@ -41,7 +41,6 @@ function mostrarAsistencia(id) {
     console.log(`Mostrando asistencia para el ID: ${id}`);
     const resultDiv = document.getElementById("result");
     resultDiv.innerHTML = `<h2>Asistencia para el ID: ${id}</h2>`;
-    // Aquí puedes agregar la lógica para recuperar y mostrar la asistencia del alumno
 }
 
 // Función para descargar asistencia
