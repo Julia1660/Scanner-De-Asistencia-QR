@@ -46,7 +46,21 @@ function mostrarAsistencia(id) {
 // Función para descargar asistencia
 function descargarAsistencia() {
     console.log("Descargando asistencia...");
-    // Aquí se implementará la lógica para generar y descargar el archivo Excel
+    const attendanceData = [
+        { id: "123", name: "Estudiante 1", timestamp: "2023-10-01" },
+        { id: "456", name: "Estudiante 2", timestamp: "2023-10-02" }
+    ];
+    
+    const csvContent = "data:text/csv;charset=utf-8," 
+        + attendanceData.map(e => `${e.id},${e.name},${e.timestamp}`).join("\n");
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "asistencia.csv");
+    document.body.appendChild(link); // Required for FF
+
+    link.click();
 }
 
 // Iniciar el escáner
